@@ -1,0 +1,108 @@
+name: Update Formula
+
+on:
+  workflow_dispatch:
+    inputs:
+      formula:
+        description: "Formula name (glow or glow-beta)"
+        required: true
+      version:
+        description: "Version number (e.g. 2.9.0)"
+        required: true
+      tag:
+        description: "Release tag (e.g. v2.9.0 or v2.9.0-beta)"
+        required: true
+      sha_arm:
+        description: "SHA256 for aarch64-apple-darwin"
+        required: true
+      sha_x86_mac:
+        description: "SHA256 for x86_64-apple-darwin"
+        required: true
+      sha_linux:
+        description: "SHA256 for x86_64-unknown-linux-gnu"
+        required: true
+      sha_windows:
+        description: "SHA256 for x86_64-pc-windows-msvc"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update formula
+        run: |
+          FORMULA="${{ inputs.formula }}"
+          VERSION="${{ inputs.version }}"
+          TAG="${{ inputs.tag }}"
+          SHA_ARM="${{ inputs.sha_arm }}"
+          SHA_X86_MAC="${{ inputs.sha_x86_mac }}"
+          SHA_LINUX="${{ inputs.sha_linux }}"
+
+          if [ "$FORMULA" = "glow-beta" ]; then
+            CLASS_NAME="GlowBeta"
+            BIN_NAME="glow-beta"
+            BIN_ALIAS="glw-beta"
+            DESC="CLI for the Glow platform (beta) — manage instances, deployments, and resources"
+          else
+            CLASS_NAME="Glow"
+            BIN_NAME="glow"
+            BIN_ALIAS="glw"
+            DESC="CLI for the Glow platform — manage instances, deployments, and resources"
+          fi
+
+          cat > "Formula/${FORMULA}.rb" << EOF
+          class ${CLASS_NAME} < Formula
+            desc "${DESC}"
+            homepage "https://github.com/learnloopllc/glow-cli"
+            version "${VERSION}"
+            license "MIT"
+
+            on_macos do
+              if Hardware::CPU.arm?
+                url "https://github.com/learnloopllc/glow-cli/releases/download/${TAG}/glow-aarch64-apple-darwin.tar.gz"
+                sha256 "${SHA_ARM}"
+              else
+                url "https://github.com/learnloopllc/glow-cli/releases/download/${TAG}/glow-x86_64-apple-darwin.tar.gz"
+                sha256 "${SHA_X86_MAC}"
+              end
+            end
+
+            on_linux do
+              url "https://github.com/learnloopllc/glow-cli/releases/download/${TAG}/glow-x86_64-unknown-linux-gnu.tar.gz"
+              sha256 "${SHA_LINUX}"
+            end
+
+            def install
+              bin.install "${BIN_NAME}"
+              bin.install "${BIN_ALIAS}"
+
+              generate_completions_from_executable(bin/"${BIN_NAME}", "completions")
+            end
+
+            test do
+              assert_match "Glow CLI", shell_output("#{bin}/${BIN_NAME} --help")
+              assert_match version.to_s, shell_output("#{bin}/${BIN_NAME} --version")
+              assert_match "Glow CLI", shell_output("#{bin}/${BIN_ALIAS} --help")
+            end
+          end
+          EOF
+
+          # Remove leading whitespace from heredoc
+          sed -i 's/^          //' "Formula/${FORMULA}.rb"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "Formula/${{ inputs.formula }}.rb"
+          if git diff --cached --quiet; then
+            echo "Formula already up to date"
+          else
+            git commit -m "Update ${{ inputs.formula }} to ${{ inputs.tag }}"
+            git push
+          fi
