@@ -6,16 +6,16 @@ class GlowBeta < Formula
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/learnloopllc/glow-cli/releases/download/v2.10.0-beta/glow-beta-aarch64-apple-darwin.tar.gz"
+      url "https://github.com/learnloopllc/glow-cli/releases/download/v2.10.0-beta/glow-aarch64-apple-darwin.tar.gz"
       sha256 "b9597692be00075828270ea446624593a3bca0344f3f6e5f55caf614a0f3872b"
     else
-      url "https://github.com/learnloopllc/glow-cli/releases/download/v2.10.0-beta/glow-beta-x86_64-apple-darwin.tar.gz"
+      url "https://github.com/learnloopllc/glow-cli/releases/download/v2.10.0-beta/glow-x86_64-apple-darwin.tar.gz"
       sha256 "9ab78c0c0bf210f06e241415854b01f77e8414db41b31c93df3f80635efc8c35"
     end
   end
 
   on_linux do
-    url "https://github.com/learnloopllc/glow-cli/releases/download/v2.10.0-beta/glow-beta-x86_64-unknown-linux-gnu.tar.gz"
+    url "https://github.com/learnloopllc/glow-cli/releases/download/v2.10.0-beta/glow-x86_64-unknown-linux-gnu.tar.gz"
     sha256 "afd5ea47ef84f8a71e6423f67a4a4bb7ca77a8134864ab9f81d589278ce38379"
   end
 
