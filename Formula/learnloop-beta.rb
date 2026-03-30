@@ -1,22 +1,22 @@
 class LearnloopBeta < Formula
   desc "CLI for the LearnLoop platform (beta) — manage orgs, billing, deployments, and licenses"
   homepage "https://github.com/learnloopllc/cli"
-  version "2.3.1"
+  version "2.4.0"
   license "MIT"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/learnloopllc/cli/releases/download/v2.3.1-beta/learnloop-aarch64-apple-darwin.tar.gz"
-      sha256 "700719a6079e667459b28a1cddf98fbaaf23a921a23f6350bd4fb9b030e0da32"
+      url "https://github.com/learnloopllc/cli/releases/download/v2.4.0-beta/learnloop-aarch64-apple-darwin.tar.gz"
+      sha256 "902bf54b58b91a9062e0e3165747c18ee42f8da9d683a57e3b85ee10b76a1b46"
     else
-      url "https://github.com/learnloopllc/cli/releases/download/v2.3.1-beta/learnloop-x86_64-apple-darwin.tar.gz"
-      sha256 "209f3f0860f19e15bb9caf952c9703d25189ccbdfc068af68331995f74dd93b6"
+      url "https://github.com/learnloopllc/cli/releases/download/v2.4.0-beta/learnloop-x86_64-apple-darwin.tar.gz"
+      sha256 "f89336725ec92353a19a2aa1b4751bb77df22543d8d89fce1c4b7b2af78c1135"
     end
   end
 
   on_linux do
-    url "https://github.com/learnloopllc/cli/releases/download/v2.3.1-beta/learnloop-x86_64-unknown-linux-gnu.tar.gz"
-    sha256 "79f29093c9cc9898566025a38a89287be8500d8057cdb16b351d325b56fe22f5"
+    url "https://github.com/learnloopllc/cli/releases/download/v2.4.0-beta/learnloop-x86_64-unknown-linux-gnu.tar.gz"
+    sha256 "997877ea5c4fdac58d71cd4f0f6fedbc240d7db15626e5702a262ba85d966557"
   end
 
   def install
