@@ -4,13 +4,22 @@ on:
   workflow_dispatch:
     inputs:
       formula:
-        description: "Formula name (glow or glow-beta)"
+        description: "Formula name (glow, glow-beta, learnloop, learnloop-beta)"
         required: true
       version:
         description: "Version number (e.g. 2.9.0)"
         required: true
       tag:
         description: "Release tag (e.g. v2.9.0 or v2.9.0-beta)"
+        required: true
+      repo:
+        description: "Source repo (e.g. learnloopllc/glow-cli)"
+        required: true
+      bin_name:
+        description: "Primary binary name (e.g. glow, learnloop)"
+        required: true
+      bin_alias:
+        description: "Binary alias (e.g. glw, ll)"
         required: true
       sha_arm:
         description: "SHA256 for aarch64-apple-darwin"
@@ -21,9 +30,6 @@ on:
       sha_linux:
         description: "SHA256 for x86_64-unknown-linux-gnu"
         required: true
-      sha_windows:
-        description: "SHA256 for x86_64-pc-windows-msvc"
-        required: false
 
 permissions:
   contents: write
@@ -39,55 +45,70 @@ jobs:
           FORMULA="${{ inputs.formula }}"
           VERSION="${{ inputs.version }}"
           TAG="${{ inputs.tag }}"
+          REPO="${{ inputs.repo }}"
+          BIN_NAME="${{ inputs.bin_name }}"
+          BIN_ALIAS="${{ inputs.bin_alias }}"
           SHA_ARM="${{ inputs.sha_arm }}"
           SHA_X86_MAC="${{ inputs.sha_x86_mac }}"
           SHA_LINUX="${{ inputs.sha_linux }}"
 
-          if [ "$FORMULA" = "glow-beta" ]; then
-            CLASS_NAME="GlowBeta"
-            BIN_NAME="glow-beta"
-            BIN_ALIAS="glw-beta"
-            DESC="CLI for the Glow platform (beta) — manage instances, deployments, and resources"
-          else
-            CLASS_NAME="Glow"
-            BIN_NAME="glow"
-            BIN_ALIAS="glw"
-            DESC="CLI for the Glow platform — manage instances, deployments, and resources"
-          fi
+          # Derive class name from formula name (glow-beta → GlowBeta)
+          CLASS_NAME=$(echo "$FORMULA" | sed 's/-\(.\)/\U\1/g; s/^\(.\)/\U\1/')
+
+          # Derive description
+          case "$FORMULA" in
+            glow)          DESC="CLI for the Glow platform — manage instances, deployments, and resources" ;;
+            glow-beta)     DESC="CLI for the Glow platform (beta) — manage instances, deployments, and resources" ;;
+            learnloop)     DESC="CLI for the LearnLoop platform — manage orgs, billing, deployments, and licenses" ;;
+            learnloop-beta) DESC="CLI for the LearnLoop platform (beta) — manage orgs, billing, deployments, and licenses" ;;
+            *) DESC="CLI for the LearnLoop platform" ;;
+          esac
+
+          # Derive help match string
+          case "$FORMULA" in
+            glow*) HELP_MATCH="Glow CLI" ;;
+            learnloop*) HELP_MATCH="LearnLoop platform CLI" ;;
+            *) HELP_MATCH="CLI" ;;
+          esac
+
+          # Check if formula has completions (glow does, learnloop doesn't yet)
+          COMPLETIONS=""
+          case "$FORMULA" in
+            glow*) COMPLETIONS="    generate_completions_from_executable(bin/\"${BIN_NAME}\", \"completions\")" ;;
+          esac
 
           cat > "Formula/${FORMULA}.rb" << EOF
           class ${CLASS_NAME} < Formula
             desc "${DESC}"
-            homepage "https://github.com/learnloopllc/glow-cli"
+            homepage "https://github.com/${REPO}"
             version "${VERSION}"
             license "MIT"
 
             on_macos do
               if Hardware::CPU.arm?
-                url "https://github.com/learnloopllc/glow-cli/releases/download/${TAG}/glow-aarch64-apple-darwin.tar.gz"
+                url "https://github.com/${REPO}/releases/download/${TAG}/${BIN_NAME}-aarch64-apple-darwin.tar.gz"
                 sha256 "${SHA_ARM}"
               else
-                url "https://github.com/learnloopllc/glow-cli/releases/download/${TAG}/glow-x86_64-apple-darwin.tar.gz"
+                url "https://github.com/${REPO}/releases/download/${TAG}/${BIN_NAME}-x86_64-apple-darwin.tar.gz"
                 sha256 "${SHA_X86_MAC}"
               end
             end
 
             on_linux do
-              url "https://github.com/learnloopllc/glow-cli/releases/download/${TAG}/glow-x86_64-unknown-linux-gnu.tar.gz"
+              url "https://github.com/${REPO}/releases/download/${TAG}/${BIN_NAME}-x86_64-unknown-linux-gnu.tar.gz"
               sha256 "${SHA_LINUX}"
             end
 
             def install
               bin.install "${BIN_NAME}"
               bin.install "${BIN_ALIAS}"
-
-              generate_completions_from_executable(bin/"${BIN_NAME}", "completions")
+          ${COMPLETIONS}
             end
 
             test do
-              assert_match "Glow CLI", shell_output("#{bin}/${BIN_NAME} --help")
+              assert_match "${HELP_MATCH}", shell_output("#{bin}/${BIN_NAME} --help")
               assert_match version.to_s, shell_output("#{bin}/${BIN_NAME} --version")
-              assert_match "Glow CLI", shell_output("#{bin}/${BIN_ALIAS} --help")
+              assert_match "${HELP_MATCH}", shell_output("#{bin}/${BIN_ALIAS} --help")
             end
           end
           EOF
