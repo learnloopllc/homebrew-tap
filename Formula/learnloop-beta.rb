@@ -6,16 +6,16 @@ class LearnloopBeta < Formula
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/learnloopllc/cli/releases/download/v2.0.0-beta/learnloop-beta-aarch64-apple-darwin.tar.gz"
+      url "https://github.com/learnloopllc/cli/releases/download/v2.0.0-beta/learnloop-aarch64-apple-darwin.tar.gz"
       sha256 "d7cd8e038eb5953c851076391fb412afb5af6a15b8d001d9524df28db7a4770d"
     else
-      url "https://github.com/learnloopllc/cli/releases/download/v2.0.0-beta/learnloop-beta-x86_64-apple-darwin.tar.gz"
+      url "https://github.com/learnloopllc/cli/releases/download/v2.0.0-beta/learnloop-x86_64-apple-darwin.tar.gz"
       sha256 "d5777514f2f4ad15cde77cc927c5615d2756dd309b63fdbd120a9aa57cd62e77"
     end
   end
 
   on_linux do
-    url "https://github.com/learnloopllc/cli/releases/download/v2.0.0-beta/learnloop-beta-x86_64-unknown-linux-gnu.tar.gz"
+    url "https://github.com/learnloopllc/cli/releases/download/v2.0.0-beta/learnloop-x86_64-unknown-linux-gnu.tar.gz"
     sha256 "dae826085d5e7669de8bd1ed3e78ec3e5469d7bd507785483f75e1fe99c121bc"
   end
 
